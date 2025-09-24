@@ -35,40 +35,62 @@ def create_sample_data():
     Librarian.objects.get_or_create(name='Bob Johnson', library=lib_branch)
     
     print("Sample data created successfully.\n")
-    return author_a, lib_main
 
-def run_sample_queries(author_a, library_main):
+def run_sample_queries():
     """Executes the relationship queries."""
     print("--- Running Sample Queries ---")
 
-    # 1. Query all books by a specific author (ForeignKey reverse lookup)
-    print("\n[ForeignKey Query] Query all books by Jane Austen:")
-    # We use the related_name='books' defined on the Author model
-    jane_austen_books = author_a.books.all()
-    for book in jane_austen_books:
-        print(f"  - {book.title}")
-
-    # 2. List all books in a library (ManyToManyField)
-    print("\n[ManyToManyField Query] List all books in Main City Library:")
-    # We use the 'books' attribute defined on the Library model
-    main_library_books = library_main.books.all()
-    for book in main_library_books:
-        print(f"  - {book.title} (by {book.author.name})")
-
-    # 3. Retrieve the librarian for a library (OneToOneField reverse lookup)
-    print("\n[OneToOneField Query] Retrieve the librarian for Main City Library:")
-    # We can access the related Librarian object directly using the model's lowercase name
+    # --- Foreign Key Query ---
+    author_name = 'Jane Austen'
+    print(f"\n[ForeignKey Query] Query all books by {author_name}:")
     try:
-        librarian = library_main.librarian
+        # 1. Find the Author instance
+        jane_austen = Author.objects.get(name=author_name) 
+        
+        # 2. Use the reverse relationship manager ('books')
+        jane_austen_books = jane_austen.books.all()
+        for book in jane_austen_books:
+            print(f"  - {book.title}")
+    except Author.DoesNotExist:
+        print(f"  - Author '{author_name}' not found.")
+
+
+    # --- Many-to-Many Query ---
+    library_name = 'Main City Library'
+    print(f"\n[ManyToManyField Query] List all books in {library_name}:")
+    try:
+        # 1. Retrieve the Library instance
+        main_library = Library.objects.get(name=library_name) # <--- Using Library.objects.get()
+        
+        # 2. Use the ManyToMany field ('books')
+        main_library_books = main_library.books.all()
+        for book in main_library_books:
+            print(f"  - {book.title} (by {book.author.name})")
+    except Library.DoesNotExist:
+        print(f"  - Library '{library_name}' not found.")
+
+
+    # --- One-to-One Query ---
+    library_name = 'Main City Library'
+    print(f"\n[OneToOneField Query] Retrieve the librarian for {library_name}:")
+    try:
+        # 1. Retrieve the Library instance
+        main_library = Library.objects.get(name=library_name) # <--- Using Library.objects.get()
+        
+        # 2. Use the OneToOne reverse relationship (lowercase model name: 'librarian')
+        librarian = main_library.librarian
         print(f"  - Librarian: {librarian.name}")
+    except Library.DoesNotExist:
+        print(f"  - Library '{library_name}' not found.")
     except Librarian.DoesNotExist:
-        print("  - No librarian found.")
+        print(f"  - No librarian found for '{library_name}'.")
 
 if __name__ == '__main__':
     # Clean up old data to ensure a fresh run
     Author.objects.all().delete()
     Library.objects.all().delete()
     Librarian.objects.all().delete()
+    Book.objects.all().delete() # Clean up books too
 
-    author_a, lib_main = create_sample_data()
-    run_sample_queries(author_a, lib_main)
+    create_sample_data()
+    run_sample_queries()
