@@ -37,7 +37,31 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'user_app',
 ]
+
+AUTH_USER_MODEL = 'user_app.CustomUser'
+
+import os 
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# This correctly finds the directory containing settings.py (LibraryProject)
+# and then moves up one level to the project root (advanced_features_and_security).
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Find the DATABASE configuration (around line 89)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        # This line will now work:
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
