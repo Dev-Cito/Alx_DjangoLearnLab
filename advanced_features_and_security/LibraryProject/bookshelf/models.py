@@ -1,41 +1,37 @@
 from django.db import models
-
-# Create your models here.
-
-
-class Book(models.Model):
-    """
-    Represents a book in the library.
-    """
-    title = models.CharField(max_length=200)
-    author = models.CharField(max_length=100)
-    publication_year = models.IntegerField()
-
-    def __str__(self):
-        """
-        String representation of the Book model.
-        """
-        return f"{self.title} by {self.author} ({self.publication_year})"
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 
+class CustomUserManager(BaseUserManager):
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        if not username:
+            raise ValueError("The Username field is required")
+        if not email:
+            raise ValueError("The Email field is required")
 
-from django.contrib import admin
-from .models import Book   # ✅ Import the Book model
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-@admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'publication_year')  # ✅ fields to show
-    search_fields = ('title', 'author')                     # ✅ search box
-    list_filter = ('publication_year',)                     # ✅ filter sidebar
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-# LibraryProject/bookshelf/models.py
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
 
-from django.db import models
-from django.contrib.auth.models import AbstractUser
+        return self.create_user(username, email, password, **extra_fields)
+
 
 class CustomUser(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
-    profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+    profile_photo = models.ImageField(upload_to="profile_photos/", null=True, blank=True)
+
+    objects = CustomUserManager()  # attach manager
 
     def __str__(self):
         return self.username
