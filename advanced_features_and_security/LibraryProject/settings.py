@@ -42,6 +42,8 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'user_app.CustomUser'
+AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
 
 import os 
 from pathlib import Path
